@@ -1,34 +1,66 @@
-// sum : 
+// // making tea...
+// // function making(){
+// //     return new Promise(resolve => {
+// //         setTimeout(function(){
+// //             resolve("Tea is done....")
+// //         },3000)
+// //     })
+// // }
+// // async function makeTea(){
+// //     console.log("Making tea....");
+// //     const result = await making();
+// //     console.log(result);
+// // }
 
-function sum(a,b){
-    return parseInt(a) + parseInt(b);
-}
+// // makeTea();
 
-// console.log(sum(1,2));
-
-//  file :
-
-// const fs = require("fs");
-
-// function read(err, data){
-//     console.log(data);
+// async function fetchWithRetry(url, retries = 3) {
+//   for (let i = 1; i <= retries; i++) {
+//     try {
+//       const response = await fetch(url);
+//       if (!response.ok) throw new Error(`status: ${response.status}`);
+//       const data = response.json();
+//       return data;
+//     } catch (err) {
+//       console.log("Errorr");
+//       if (i === retries) console.log("Maximum tries failed");
+//     }
+//     await new Promise((res) => setTimeout(res, 1000));
+//   }
 // }
-// const contents = fs.readFile("a.txt","utf-8", read); // Async
-// const contents2 = fs.readFile("b.txt", "utf-8", read); // Async
-// console.log("Done");
 
-// Async :
+// async function run() {
+//   try {
+//     const user = await fetchWithRetry(
+//       "https://jsonplaceholder.typicode.com/users/"
+//     );
+//     console.log("User fetched: ", user.name);
+//   } catch (err) {
+//     console.log(err);
+//   }
+// }
 
-function timeout(){
-    console.log("Click");
-}
-console.log("Hi");
-setTimeout(timeout , 1000);
-console.log("WElcome");
-let c = 0;
-for(let i = 1 ; i < 1000000000; i++){
-    c += i;
-}
-console.log("End");
+// // run();
 
+// // return a fake user as fetch
 
+// function wait(ms) {
+//   return new Promise((resolve) => {
+//     setTimeout(resolve, ms);
+//   });
+// }
+
+// async function fake() {
+//   await wait(2000);
+//   return {
+//     name: "Alex",
+//     age: 20,
+//   };
+// }
+
+// async function run2() {
+//     const data = await fake();
+//     console.log(data.name);  
+// }
+ 
+// run2()
