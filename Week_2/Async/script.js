@@ -62,5 +62,5 @@
 //     const data = await fake();
 //     console.log(data.name);  
 // }
- 
+  
 // run2()
