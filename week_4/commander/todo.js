@@ -8,7 +8,7 @@ const todoFile = path.join(__dirname, "todo.json");
 
 program 
     .name("To do application")
-    .description("It will create todo and update or delete the tasks provided to todo application")
+    .description("It will create todo or delete the tasks provided to todo application")
     .version("1.0.0")
 
 program
