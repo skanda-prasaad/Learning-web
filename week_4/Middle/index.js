@@ -14,13 +14,13 @@ app.use(ageCheckMiddleware);
 
 app.get("/ride1", function (req, res) {
   res.json({
-    msg: "You are eligible to ride...",
+    msg: "You are eligible to ride1...",
   });
 });
 
 app.get("/ride2", function (req, res) {
     res.json({
-      msg: "You are eligible to ride...",
+      msg: "You are eligible to ride2...",
     });
   });
 
