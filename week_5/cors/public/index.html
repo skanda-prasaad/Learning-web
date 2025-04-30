@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.9.0/axios.min.js" integrity="sha512-FPlUpimug7gt7Hn7swE8N2pHw/+oQMq/+R/hH/2hZ43VOQ+Kjh25rQzuLyPz7aUWKlRpI7wXbY6+U3oFPGjPOA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+    <script>
+        async function sum() {
+          const a = document.getElementById("a").value;
+          const b = document.getElementById("b").value;
+      
+          try {
+            const response = await axios.post("http://localhost:3000/sum", {
+              a: a,
+              b: b
+            });
+            document.getElementById("result").innerText = "Sum: " + response.data.answer;
+          } catch (error) {
+            document.getElementById("result").innerText = "Error: " + (error.response?.data || error.message);
+          }
+        }
+      </script>
+</head>
+<body>
+    <input type="text" name="" id="a" placeholder="value 1">
+    <input type="text" name="" id="b" placeholder="value 2">
+    <button onclick="sum()">Find Sum</button>
+    <div id="result"></div>
+    <!-- <script src="index.js"></script -->
+</body>
+</html>
