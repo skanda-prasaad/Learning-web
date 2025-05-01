@@ -1,24 +1,11 @@
 const express = require('express');
+const jwt = require('jsonwebtoken');
+
+const JWT_SECRET = "random";
 const app = express();
 app.use(express.json());
 
 let users = [];
-
-function generateToken(){
-    const options = [
-        'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm',
-        'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
-        'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
-        'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
-        '1', '2', '3', '4', '5', '6', '7', '8', '9'
-      ];
-      let token = '';
-    for (let i = 0; i < 32; i++) {
-        const randomIndex = Math.floor(Math.random() * options.length);
-        token += options[randomIndex];
-    }
-    return token;      
-}
 
 app.post("/signup", function(req, res){
     const username = req.body.username;
@@ -36,6 +23,7 @@ app.post("/signup", function(req, res){
         username : username,
         password : password
     })
+    console.log(users);
     res.send("User signed up successfully");
 })
 
@@ -45,14 +33,37 @@ app.post("/signin", function(req, res){
        return user.username == username && user.password == password
     });
     if(foundUser){
-        const token = generateToken();
-        foundUser.token = token;
+        const token = jwt.sign({
+            username : username
+        }, JWT_SECRET);
+
+        // foundUser.token = token;
         res.json({
-            message : token
+            token : token
         })
     }else {
         res.status(400).send("Invalid Credentials..")
     }
+    console.log(users);
 })
+
+app.get("/me", function(req, res){
+    const token = req.headers.authorization;
+    console.log(token);
+    const decodeinfo = jwt.verify(token, JWT_SECRET);
+    const username = decodeinfo.username;
+    const user = users.find(user => user.username == username);
+    if(user){
+        res.send({
+            username : user.username,
+            password : user.password
+        })
+    }else{
+        res.status(400).send({
+           token :  "Unauthorized"
+        })
+    }
+})
+
 
 app.listen(3000);
