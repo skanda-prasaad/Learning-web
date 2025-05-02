@@ -1,114 +1,187 @@
-<html>
-  <head>
-    <title>Auth website</title>
-  </head>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.7.7/axios.min.js"></script>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Auth App</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body>
+  <div id="app">
+    <div id="loading" class="loading-spinner" style="display:none">
+      <svg class="spinner" viewBox="0 0 50 50">
+        <circle cx="25" cy="25" r="20" fill="none" stroke-width="5"></circle>
+      </svg>
+    </div>
+
+    <!-- Signup Container -->
+    <div class="container" id="signup-container">
+      <h1>Create Account</h1>
+      <div id="signup-message" class="message"></div>
+      <form id="signup-form">
+        <div class="form-group">
+          <label for="signup-username">Username</label>
+          <input type="text" id="signup-username" placeholder="Enter username" required>
+        </div>
+        <div class="form-group">
+          <label for="signup-password">Password</label>
+          <input type="password" id="signup-password" placeholder="Create password" required>
+        </div>
+        <button type="submit">Sign Up</button>
+      </form>
+      <div class="nav">
+        <span>Already registered?</span>
+        <a href="#" id="show-signin">Sign In</a>
+      </div>
+    </div>
+
+    <!-- Signin Container -->
+    <div class="container" id="signin-container" style="display:none">
+      <h1>Welcome Back</h1>
+      <div id="signin-message" class="message"></div>
+      <form id="signin-form">
+        <div class="form-group">
+          <label for="signin-username">Username</label>
+          <input type="text" id="signin-username" placeholder="Enter username" required>
+        </div>
+        <div class="form-group">
+          <label for="signin-password">Password</label>
+          <input type="password" id="signin-password" placeholder="Your password" required>
+        </div>
+        <button type="submit">Sign In</button>
+      </form>
+      <div class="nav">
+        <span>New here?</span>
+        <a href="#" id="show-signup">Create Account</a>
+      </div>
+    </div>
+
+    <!-- Profile Container -->
+    <div class="container" id="profile-container" style="display:none">
+      <h1>Your Profile</h1>
+      <div id="profile-message" class="message"></div>
+      <div class="profile-info">
+        <p><strong>Username:</strong> <span id="profile-username"></span></p>
+        <p><strong>Password:</strong> <span id="profile-password"></span></p>
+      </div>
+      <div class="token">
+        <p><strong>Session Token:</strong></p>
+        <div id="token-display"></div>
+      </div>
+      <button id="signout-btn" class="signout-btn">Sign Out</button>
+    </div>
+  </div>
+
   <script>
-    async function signup() {
-      const username = document.getElementById("signup-username").value;
-      const password = document.getElementById("signup-password").value;
+    // DOM Elements
+    const containers = {
+      signup: document.getElementById('signup-container'),
+      signin: document.getElementById('signin-container'),
+      profile: document.getElementById('profile-container')
+    };
 
-      const response = await axios.post("http://localhost:3000/signup", {
-        username: username,
-        password: password,
-      });
-      alert(response.data.message); // Show the response message
-    }
+    // Navigation
+    document.getElementById('show-signin').addEventListener('click', (e) => {
+      e.preventDefault();
+      showContainer('signin');
+    });
 
-    async function signin() {
-      const username = document.getElementById("signin-username").value;
-      const password = document.getElementById("signin-password").value;
-      const response = await axios.post("http://localhost:3000/signin", {
-        username: username,
-        password: password,
-      });
+    document.getElementById('show-signup').addEventListener('click', (e) => {
+      e.preventDefault();
+      showContainer('signup');
+    });
 
-      if (response.data.token) {
-        localStorage.setItem("token", response.data.token);
-        alert("You are signed in");
-      } else {
-        alert(response.data.message); // Show the error message if credentials are incorrect
-      }
-    }
-
-    async function getUserInformation() {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        alert("You are not logged in!");
-        return;
-      }
+    // Form Submissions
+    document.getElementById('signup-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      showLoading(true);
+      
+      const username = document.getElementById('signup-username').value;
+      const password = document.getElementById('signup-password').value;
 
       try {
-        const response = await axios.get("http://localhost:3000/me", {
-          headers: {
-            token: token, // Pass token in the header as expected by the backend
-          },
+        const { data } = await axios.post('/signup', { username, password });
+        showMessage('signup', data.message, 'success');
+        document.getElementById('signup-form').reset();
+        showContainer('signin');
+      } catch (error) {
+        showMessage('signup', error.response?.data?.message || 'Error occurred', 'error');
+      } finally {
+        showLoading(false);
+      }
+    });
+
+    document.getElementById('signin-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      showLoading(true);
+      
+      const username = document.getElementById('signin-username').value;
+      const password = document.getElementById('signin-password').value;
+
+      try {
+        const { data } = await axios.post('/signin', { username, password });
+        localStorage.setItem('token', data.token);
+        await loadProfile();
+      } catch (error) {
+        showMessage('signin', error.response?.data?.message || 'Invalid credentials', 'error');
+      } finally {
+        showLoading(false);
+      }
+    });
+
+    // Sign Out
+    document.getElementById('signout-btn').addEventListener('click', () => {
+      localStorage.removeItem('token');
+      showContainer('signin');
+    });
+
+    // Profile Loader
+    async function loadProfile() {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+
+      try {
+        const { data } = await axios.get('/me', {
+          headers: { Authorization: token }
         });
 
-        console.log(response.data); // Debug: Check what data you're receiving
-
-        if (response.data.username) {
-          document.getElementById("information").innerHTML =
-            "Username: " +
-            response.data.username +
-            " Password: " +
-            response.data.password;
-        } else {
-          document.getElementById("information").innerHTML =
-            response.data.message || "Unknown error";
-        }
+        document.getElementById('profile-username').textContent = data.username;
+        document.getElementById('profile-password').textContent = data.password;
+        document.getElementById('token-display').textContent = token;
+        showContainer('profile');
       } catch (error) {
-        console.error("Error fetching user info: ", error);
-        alert("Failed to get user information. Please try again.");
+        localStorage.removeItem('token');
+        showContainer('signin');
+        showMessage('signin', 'Session expired. Please sign in again.', 'error');
       }
     }
 
-    function logout() {
-      localStorage.removeItem("token");
-      alert("You have been logged out");
-      document.getElementById("information").innerHTML = "";
+    // Helpers
+    function showContainer(containerName) {
+      Object.values(containers).forEach(c => c.style.display = 'none');
+      containers[containerName].style.display = 'block';
     }
+
+    function showMessage(formType, text, type) {
+      const el = document.getElementById(`${formType}-message`);
+      el.textContent = text;
+      el.className = `message ${type}`;
+    }
+
+    function showLoading(show) {
+      document.getElementById('loading').style.display = show ? 'flex' : 'none';
+    }
+
+    // Initial Load
+    window.addEventListener('load', () => {
+      if (localStorage.getItem('token')) {
+        loadProfile();
+      } else {
+        showContainer('signup');
+      }
+    });
   </script>
-  <body>
-    <div>
-      Signup
-      <input
-        id="signup-username"
-        type="text"
-        name="username"
-        placeholder="Username"
-      />
-      <input
-        id="signup-password"
-        type="password"
-        name="password"
-        placeholder="Password"
-      />
-      <button onclick="signup()">Submit</button>
-    </div>
-    <div>
-      Signin
-      <input
-        id="signin-username"
-        type="text"
-        name="username"
-        placeholder="Username"
-      />
-      <input
-        id="signin-password"
-        type="password"
-        name="password"
-        placeholder="Password"
-      />
-      <button onclick="signin()">Submit</button>
-    </div>
-    <div>
-      User information:
-      <div id="information"></div>
-    </div>
-    <div>
-      <button onclick="getUserInformation()">Get User Information</button>
-      <button onclick="logout()">Logout</button>
-    </div>
-  </body>
+</body>
 </html>

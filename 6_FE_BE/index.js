@@ -1,9 +1,11 @@
+// server.js
 const express = require("express");
 const jwt = require("jsonwebtoken");
 
-const JWT_SECRET = "kirat123123";
-
+const JWT_SECRET = "randomname";
 const app = express();
+
+app.use(express.static(__dirname + "/public"));
 app.use(express.json());
 
 const users = [];
@@ -13,109 +15,57 @@ function logger(req, res, next) {
   next();
 }
 
-// localhost:3000
-app.get("/", function (req, res) {
+app.get("/favicon.ico", (req, res) => res.status(204).end());
+
+app.get("/", (req, res) => {
   res.sendFile(__dirname + "/public/index.html");
 });
 
-app.post("/signup", logger, function (req, res) {
-  const username = req.body.username;
-  const password = req.body.password;
-
-  // Check if the user already exists
+app.post("/signup", logger, (req, res) => {
+  const { username, password } = req.body;
   const existingUser = users.find((user) => user.username === username);
+
   if (existingUser) {
-    return res.json({
-      message: "Username already exists",
-    });
+    return res.status(409).json({ message: "Username already exists" });
   }
 
-  users.push({
-    username: username,
-    password: password,
-  });
-
-  res.json({
-    message: "You are signed up",
-  });
+  users.push({ username, password });
+  res.json({ message: "You are signed up" });
 });
 
-app.post("/signin", logger, function (req, res) {
-  const username = req.body.username;
-  const password = req.body.password;
+app.post("/signin", logger, (req, res) => {
+  const { username, password } = req.body;
+  const user = users.find(
+    (u) => u.username === username && u.password === password
+  );
 
-  let foundUser = null;
-
-  // Find user with matching credentials
-  for (let i = 0; i < users.length; i++) {
-    if (users[i].username === username && users[i].password === password) {
-      foundUser = users[i];
-      break; // Stop once user is found
-    }
+  if (!user) {
+    return res.status(401).json({ message: "Credentials incorrect" });
   }
 
-  if (!foundUser) {
-    return res.json({
-      message: "Credentials incorrect",
-    });
-  } else {
-    const token = jwt.sign(
-      {
-        username: foundUser.username,
-      },
-      JWT_SECRET,
-      { expiresIn: "1h" } // Optional expiration time for the token
-    );
-    res.header("jwt", token);
-    res.json({
-      token: token,
-    });
-  }
+  const token = jwt.sign({ username }, JWT_SECRET, { expiresIn: "1h" });
+  res.json({ token });
 });
 
 function auth(req, res, next) {
-  const token = req.headers.token;
+  const token = req.headers.authorization;
 
   if (!token) {
-    return res.json({
-      message: "You are not logged in",
-    });
+    return res.status(401).json({ message: "You are not logged in" });
   }
 
   try {
-    const decodedData = jwt.verify(token, JWT_SECRET);
-    console.log("Decoded token data: ", decodedData); // Debug: Log decoded token
-
-    if (decodedData.username) {
-      req.username = decodedData.username;
-      next();
-    } else {
-      res.json({
-        message: "Invalid token",
-      });
-    }
+    const decoded = jwt.verify(token, JWT_SECRET);
+    req.username = decoded.username;
+    next();
   } catch (error) {
-    console.log("Error verifying token: ", error); // Log any error with token verification
-    res.json({
-      message: "Invalid or expired token",
-    });
+    res.status(401).json({ message: "Invalid or expired token" });
   }
 }
 
-app.get("/me", logger, auth, function (req, res) {
-  const currentUser = req.username; // Extract the username from the decoded JWT
-  const foundUser = users.find((user) => user.username === currentUser);
-
-  if (foundUser) {
-    res.json({
-      username: foundUser.username,
-      password: foundUser.password,
-    });
-  } else {
-    res.json({
-      message: "User not found",
-    });
-  }
+app.get("/me", logger, auth, (req, res) => {
+  const user = users.find((u) => u.username === req.username);
+  res.json(user || { message: "User not found" });
 });
 
 app.listen(3000, () => {
