@@ -14,10 +14,10 @@ const Todo = new Schema({
     userID : ObjectId
 })
 
-const UesrModel = mongoose.model('users',User);
+const UserModel = mongoose.model('users',User);
 const TodoModel = mongoose.model('todos',Todo);
 
 module.exports = {
-    UesrModel : UesrModel,
+    UserModel : UserModel,
     TodoModel : TodoModel
 }
