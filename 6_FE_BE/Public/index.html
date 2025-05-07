@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Auth App</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/styles.css" />
   <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 </head>
 <body>
@@ -23,11 +23,11 @@
       <form id="signup-form">
         <div class="form-group">
           <label for="signup-username">Username</label>
-          <input type="text" id="signup-username" placeholder="Enter username" required>
+          <input type="text" id="signup-username" placeholder="Enter username" required />
         </div>
         <div class="form-group">
           <label for="signup-password">Password</label>
-          <input type="password" id="signup-password" placeholder="Create password" required>
+          <input type="password" id="signup-password" placeholder="Create password" required />
         </div>
         <button type="submit">Sign Up</button>
       </form>
@@ -44,11 +44,11 @@
       <form id="signin-form">
         <div class="form-group">
           <label for="signin-username">Username</label>
-          <input type="text" id="signin-username" placeholder="Enter username" required>
+          <input type="text" id="signin-username" placeholder="Enter username" required />
         </div>
         <div class="form-group">
           <label for="signin-password">Password</label>
-          <input type="password" id="signin-password" placeholder="Your password" required>
+          <input type="password" id="signin-password" placeholder="Your password" required />
         </div>
         <button type="submit">Sign In</button>
       </form>
@@ -77,91 +77,99 @@
   <script>
     // DOM Elements
     const containers = {
-      signup: document.getElementById('signup-container'),
-      signin: document.getElementById('signin-container'),
-      profile: document.getElementById('profile-container')
+      signup: document.getElementById("signup-container"),
+      signin: document.getElementById("signin-container"),
+      profile: document.getElementById("profile-container"),
     };
 
     // Navigation
-    document.getElementById('show-signin').addEventListener('click', (e) => {
+    document.getElementById("show-signin").addEventListener("click", (e) => {
       e.preventDefault();
-      showContainer('signin');
+      showContainer("signin");
     });
 
-    document.getElementById('show-signup').addEventListener('click', (e) => {
+    document.getElementById("show-signup").addEventListener("click", (e) => {
       e.preventDefault();
-      showContainer('signup');
+      showContainer("signup");
     });
 
     // Form Submissions
-    document.getElementById('signup-form').addEventListener('submit', async (e) => {
+    document.getElementById("signup-form").addEventListener("submit", async (e) => {
       e.preventDefault();
       showLoading(true);
-      
-      const username = document.getElementById('signup-username').value;
-      const password = document.getElementById('signup-password').value;
+
+      const username = document.getElementById("signup-username").value;
+      const password = document.getElementById("signup-password").value;
 
       try {
-        const { data } = await axios.post('/signup', { username, password });
-        showMessage('signup', data.message, 'success');
-        document.getElementById('signup-form').reset();
-        showContainer('signin');
+        const { data } = await axios.post("/api/signup", { username, password });
+        showMessage("signup", data.message, "success");
+        document.getElementById("signup-form").reset();
+        showContainer("signin");
       } catch (error) {
-        showMessage('signup', error.response?.data?.message || 'Error occurred', 'error');
+        showMessage(
+          "signup",
+          error.response?.data?.message || "Error occurred",
+          "error"
+        );
       } finally {
         showLoading(false);
       }
     });
 
-    document.getElementById('signin-form').addEventListener('submit', async (e) => {
+    document.getElementById("signin-form").addEventListener("submit", async (e) => {
       e.preventDefault();
       showLoading(true);
-      
-      const username = document.getElementById('signin-username').value;
-      const password = document.getElementById('signin-password').value;
+
+      const username = document.getElementById("signin-username").value;
+      const password = document.getElementById("signin-password").value;
 
       try {
-        const { data } = await axios.post('/signin', { username, password });
-        localStorage.setItem('token', data.token);
+        const { data } = await axios.post("/api/signin", { username, password });
+        localStorage.setItem("token", data.token);
         await loadProfile();
       } catch (error) {
-        showMessage('signin', error.response?.data?.message || 'Invalid credentials', 'error');
+        showMessage(
+          "signin",
+          error.response?.data?.message || "Invalid credentials",
+          "error"
+        );
       } finally {
         showLoading(false);
       }
     });
 
     // Sign Out
-    document.getElementById('signout-btn').addEventListener('click', () => {
-      localStorage.removeItem('token');
-      showContainer('signin');
+    document.getElementById("signout-btn").addEventListener("click", () => {
+      localStorage.removeItem("token");
+      showContainer("signin");
     });
 
     // Profile Loader
     async function loadProfile() {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
       if (!token) return;
 
       try {
-        const { data } = await axios.get('/me', {
-          headers: { Authorization: token }
+        const { data } = await axios.get("/api/me", {
+          headers: { Authorization: token },
         });
 
-        document.getElementById('profile-username').textContent = data.username;
-        document.getElementById('profile-password').textContent = data.password;
-        document.getElementById('token-display').textContent = token;
-        showContainer('profile');
+        document.getElementById("profile-username").textContent = data.username;
+        document.getElementById("profile-password").textContent = data.password;
+        document.getElementById("token-display").textContent = token;
+        showContainer("profile");
       } catch (error) {
-        localStorage.removeItem('token');
-        showContainer('signin');
-        showMessage('signin', 'Session expired. Please sign in again.', 'error');
+        localStorage.removeItem("token");
+        showContainer("signin");
+        showMessage("signin", "Session expired. Please sign in again.", "error");
       }
     }
 
     // Helpers
     function showContainer(containerName) {
-      Object.values(containers).forEach(c => c.style.display = 'none');
-      containers[containerName].style.display = 'block';
+      Object.values(containers).forEach((c) => (c.style.display = "none"));
+      containers[containerName].style.display = "block";
     }
 
     function showMessage(formType, text, type) {
@@ -171,15 +179,15 @@
     }
 
     function showLoading(show) {
-      document.getElementById('loading').style.display = show ? 'flex' : 'none';
+      document.getElementById("loading").style.display = show ? "flex" : "none";
     }
 
     // Initial Load
-    window.addEventListener('load', () => {
-      if (localStorage.getItem('token')) {
+    window.addEventListener("load", () => {
+      if (localStorage.getItem("token")) {
         loadProfile();
       } else {
-        showContainer('signup');
+        showContainer("signup");
       }
     });
   </script>

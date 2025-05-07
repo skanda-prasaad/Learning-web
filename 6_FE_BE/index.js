@@ -1,11 +1,11 @@
-// server.js
 const express = require("express");
 const jwt = require("jsonwebtoken");
+const path = require("path");
 
 const JWT_SECRET = "randomname";
 const app = express();
 
-app.use(express.static(__dirname + "/public"));
+app.use(express.static(path.join(__dirname, "public")));
 app.use(express.json());
 
 const users = [];
@@ -17,11 +17,8 @@ function logger(req, res, next) {
 
 app.get("/favicon.ico", (req, res) => res.status(204).end());
 
-app.get("/", (req, res) => {
-  res.sendFile(__dirname + "/public/index.html");
-});
-
-app.post("/signup", logger, (req, res) => {
+// API Routes with /api prefix
+app.post("/api/signup", logger, (req, res) => {
   const { username, password } = req.body;
   const existingUser = users.find((user) => user.username === username);
 
@@ -33,7 +30,7 @@ app.post("/signup", logger, (req, res) => {
   res.json({ message: "You are signed up" });
 });
 
-app.post("/signin", logger, (req, res) => {
+app.post("/api/signin", logger, (req, res) => {
   const { username, password } = req.body;
   const user = users.find(
     (u) => u.username === username && u.password === password
@@ -63,11 +60,16 @@ function auth(req, res, next) {
   }
 }
 
-app.get("/me", logger, auth, (req, res) => {
+app.get("/api/me", logger, auth, (req, res) => {
   const user = users.find((u) => u.username === req.username);
   res.json(user || { message: "User not found" });
 });
 
-app.listen(3000, () => {
-  console.log("Server running on port 3000");
+// Serve index.html for all other routes (for SPA support)
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "index.html"));
 });
+
+// DO NOT call app.listen() on Vercel!
+
+module.exports = app;
